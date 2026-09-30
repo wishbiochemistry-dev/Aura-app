@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1020">
+<title>AURA — Sweat & Heat Safety</title>
+<style>
+:root{
+  --bg:#f5f7fb; --card:#fff; --ink:#101828; --muted:#667085;
+  --accent:#6c5ce7; --danger:#e5484d; --warn:#f59e0b; --safe:#16a34a;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+.app{max-width:480px;margin:auto;min-height:100vh;padding-bottom:30px}
+header{background:#0b1020;color:white;padding:24px 20px 20px;border-radius:0 0 28px 28px}
+.logo{font-size:30px;font-weight:800;letter-spacing:3px}
+.tag{opacity:.78;margin-top:5px}
+main{padding:18px}
+.card{background:var(--card);border-radius:20px;padding:18px;margin-bottom:15px;box-shadow:0 5px 20px rgba(16,24,40,.07)}
+h2{margin:0 0 12px;font-size:19px}
+.small{font-size:13px;color:var(--muted);line-height:1.45}
+button{border:0;border-radius:14px;padding:14px 18px;font-size:16px;font-weight:700;cursor:pointer}
+.primary{background:var(--accent);color:#fff;width:100%}
+.secondary{background:#eef0ff;color:#4938b8;width:100%;margin-top:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.metric{background:#f8f9fc;border-radius:15px;padding:14px}
+.metric b{display:block;font-size:24px;margin-top:5px}
+.risk{font-size:42px;font-weight:850;text-align:center;margin:8px 0}
+.badge{display:inline-block;padding:7px 11px;border-radius:999px;font-weight:800;font-size:13px}
+.safe{background:#dcfce7;color:#166534}.warn{background:#fef3c7;color:#92400e}.danger{background:#fee2e2;color:#991b1b}
+.alert{padding:15px;border-radius:16px;font-weight:700;line-height:1.4}
+.hidden{display:none}
+input[type=range]{width:100%}
+.footer{text-align:center;color:var(--muted);font-size:12px;padding:5px 20px}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">AURA</div>
+  <div class="tag">Personal heat & sweat safety</div>
+</header>
+
+<main>
+<section class="card">
+  <h2>Welcome</h2>
+  <p class="small">AURA combines local field conditions with personal sweat information to help athletes recognise heat stress early.</p>
+  <button class="primary" id="connectBtn" onclick="connectPatch()">Connect AURA Patch</button>
+  <button class="secondary" onclick="demo()">Run Demo Reading</button>
+  <p id="status" class="small" style="margin-top:12px">Patch not connected.</p>
+</section>
+
+<section id="dashboard" class="hidden">
+  <div class="card">
+    <h2>Today's Field</h2>
+    <div class="grid">
+      <div class="metric">Temperature<b id="temp">38°C</b></div>
+      <div class="metric">Humidity<b id="humidity">70%</b></div>
+      <div class="metric">Sweat rate<b id="sweat">1.1 L/h</b></div>
+      <div class="metric">Salt loss<b id="salt">1.8 g/h</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>My AURA Risk</h2>
+    <div class="risk" id="riskScore">78</div>
+    <div style="text-align:center"><span id="riskBadge" class="badge danger">HIGH RISK</span></div>
+    <div id="alertBox" class="alert danger" style="margin-top:14px">
+      ⚠ Heat-risk alert: take a 10-minute break, move to shade, and replace fluids.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Personal Recommendation</h2>
+    <p id="tip">Based on this demo reading, AURA recommends a break and hydration before returning to play.</p>
+    <p class="small">Prototype note: readings shown in this school demo are simulated. A production patch would require sensor validation and calibration.</p>
+  </div>
+
+  <div class="card">
+    <h2>Safety Log</h2>
+    <p class="small">Session started: <span id="time"></span></p>
+    <p class="small">Status: <b id="logStatus">Monitoring</b></p>
+  </div>
+</section>
+</main>
+<div class="footer">AURA school prototype • App concept for demonstration</div>
+</div>
+
+<script>
+function connectPatch(){
+  document.getElementById("status").textContent =
+    "✓ AURA Patch connected (prototype demo mode)";
+  document.getElementById("dashboard").classList.remove("hidden");
+  updateTime();
+  demo();
+}
+function demo(){
+  document.getElementById("dashboard").classList.remove("hidden");
+  const temp = 38;
+  const humidity = 70;
+  const sweat = (0.8 + Math.random()*0.8).toFixed(1);
+  const salt = (1.2 + Math.random()*1.2).toFixed(1);
+
+  // Demo-only risk calculation, NOT a medical algorithm.
+  let score = Math.round(35 + (temp-30)*4 + (humidity-50)*0.35 + (sweat-0.8)*12);
+  score = Math.max(0, Math.min(99, score));
+
+  document.getElementById("temp").textContent = temp + "°C";
+  document.getElementById("humidity").textContent = humidity + "%";
+  document.getElementById("sweat").textContent = sweat + " L/h";
+  document.getElementById("salt").textContent = salt + " g/h";
+  document.getElementById("riskScore").textContent = score;
+
+  const badge = document.getElementById("riskBadge");
+  const alert = document.getElementById("alertBox");
+  const tip = document.getElementById("tip");
+  const log = document.getElementById("logStatus");
+
+  badge.className = "badge";
+  alert.className = "alert";
+
+  if(score >= 70){
+    badge.classList.add("danger"); badge.textContent="HIGH RISK";
+    alert.classList.add("danger");
+    alert.textContent="⚠ Heat-risk alert: take a 10-minute break, move to shade, and replace fluids.";
+    tip.textContent="Your current demo conditions suggest a high heat-risk period. Pause, cool down, and replace fluids before returning to play.";
+    log.textContent="Break recommended";
+  } else if(score >= 50){
+    badge.classList.add("warn"); badge.textContent="CAUTION";
+    alert.classList.add("warn");
+    alert.textContent="⚠ Slow down, hydrate, and monitor your symptoms.";
+    tip.textContent="Consider a short break and hydration. AURA would continue monitoring your personal sweat pattern.";
+    log.textContent="Caution";
+  } else {
+    badge.classList.add("safe"); badge.textContent="LOWER RISK";
+    alert.classList.add("safe");
+    alert.textContent="✓ Conditions are currently within the demo's lower-risk range.";
+    tip.textContent="Continue monitoring and follow normal hydration and rest practices.";
+    log.textContent="Monitoring";
+  }
+  updateTime();
+}
+function updateTime(){
+  document.getElementById("time").textContent =
+    new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+}
+</script>
+</body>
+</html>
